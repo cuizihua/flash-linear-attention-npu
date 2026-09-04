@@ -91,7 +91,16 @@ def get_available_device() -> str:
 
 
 device = get_available_device()
-device_torch_lib = getattr(torch, device)
+# Handle the case when triton is not available (returns "meta_device")
+if device == "meta_device":
+    # Use a dummy device object for meta_device
+    class MetaDeviceStub:
+        @staticmethod
+        def device(index: int):
+            return torch.device("cpu")  # Fallback to CPU
+    device_torch_lib = MetaDeviceStub()
+else:
+    device_torch_lib = getattr(torch, device)
 
 
 if check_pytorch_version("2.4"):
